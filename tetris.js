@@ -61,38 +61,38 @@ function createPiece(type){
     ];
   } else if (type === 'O'){
     return [
-      [1, 1],
-      [1, 1],
+      [2, 2],
+      [2, 2],
     ];
   } else if (type === 'L'){
     return [
-      [0, 1, 0],
-      [0, 1, 0],
-      [0, 1, 1],
+      [0, 3, 0],
+      [0, 3, 0],
+      [0, 3, 3],
     ];
   } else if (type === 'J'){
     return [
-      [0, 1, 0],
-      [0, 1, 0],
-      [1, 1, 0],
+      [0, 4, 0],
+      [0, 4, 0],
+      [4, 4, 0],
     ];
   } else if (type === 'I'){
     return [
-      [0, 1, 0, 0],
-      [0, 1, 0, 0],
-      [0, 1, 0, 0],
-      [0, 1, 0, 0],
+      [0, 5, 0, 0],
+      [0, 5, 0, 0],
+      [0, 5, 0, 0],
+      [0, 5, 0, 0],
     ];
   } else if (type === 'S'){
     return [
-      [0, 1, 1],
-      [1, 1, 0],
+      [0, 6, 6],
+      [6, 6, 0],
       [0, 0, 0],
     ];
   } else if (type === 'Z'){
     return [
-      [1, 1, 0],
-      [0, 1, 1],
+      [7, 7, 0],
+      [0, 7, 7],
       [0, 0, 0],
     ];
   }
@@ -105,7 +105,7 @@ function drawMatrix(matrix, offset){
     row.forEach((value, x) => {
       //draw if value is not 0
       if (value !== 0){
-        context.fillStyle='red';
+        context.fillStyle= colors[value];
         context.fillRect(x + offset.x,
                          y + offset.y,
                          1, 1);
@@ -143,6 +143,36 @@ function playerReset(){
   player.pos.y = 0;
   player.pos.x = (arena[0].length / 2 | 0) -
                   (player.matrix[0].length / 2 | 0);
+
+  //if reset, and collides rightaway then the game is over
+  if (collide(arena, player)){
+    //clear the arena
+    arena.forEach(row => row.fill(0));
+    player.score = 0;
+    updateScore();
+  }
+}
+
+//collecting the rows when the row is cleared
+function arenaSweep(){
+  let rowCount = 1;
+  outer: for (let y = arena.length - 1; y > 0; y--){
+    for (let x = 0; x < arena[y].length; ++x){
+      //if not fully populated
+      if (arena[y][x] === 0){
+        continue outer;
+      }
+    }
+
+    //remove that row from arena
+    const row = arena.splice(y, 1)[0].fill(0);
+    //putting that row on top of the arena so its still full arrays
+    arena.unshift(row);
+    y++;
+
+    player.score += rowCount * 10;
+    rowCount *= 2;
+  }
 }
 
 //rotating the block
@@ -194,6 +224,8 @@ function playerDrop(){
     //merge arena with player
     merge(arena, player);
     playerReset();
+    arenaSweep();
+    updateScore();
   }
 
   dropCounter = 0;
@@ -218,10 +250,23 @@ function update(time = 0){
   requestAnimationFrame(update);
 }
 
+//for the colors
+const colors = [
+  null,
+  'red',
+  'blue',
+  'violet',
+  'green',
+  'purple',
+  'orange',
+  'pink',
+]
+
 const arena = createMatrix(12, 20);
 const player = {
-  pos: {x: 5, y: 5},
-  matrix: createPiece('T'),
+  pos: {x: 0, y: 0},
+  matrix: null,
+  score: 0,
 }
 
 //movement of the blocks
@@ -244,4 +289,12 @@ document.addEventListener('keydown', event =>{
   }
 });
 
+//updating score
+function updateScore(){
+  console.log(player.score);
+  document.getElementById('score').innerText = player.score;
+}
+
+playerReset();
+updateScore();
 update();
