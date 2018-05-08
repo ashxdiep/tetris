@@ -20,9 +20,9 @@ function collide(arena, player){
       //checking matrix on index y and x
       //if arena has row
       // and column
-      if ((m[y][x] !== 0) &&
+      if (m[y][x] !== 0 &&
           (arena[y + o.y] &&
-           arena[y + o.y][x + o.x] !== 0)){
+           arena[y + o.y][x + o.x]) !== 0){
              console.log('just collided');
             return true;
           }
